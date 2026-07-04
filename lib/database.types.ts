@@ -69,6 +69,16 @@ export interface PlaceImageRow {
   created_at: string;
 }
 
+export interface ProfileRow {
+  id: string;
+  display_name: string | null;
+  avatar_url: string | null;
+  city: string | null;
+  onboarded_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Database {
   public: {
     Tables: {
@@ -76,19 +86,28 @@ export interface Database {
         Row: PlaceRow;
         Insert: Partial<PlaceRow> & Pick<PlaceRow, 'name' | 'category' | 'city'>;
         Update: Partial<PlaceRow>;
+        Relationships: [];
       };
       place_images: {
         Row: PlaceImageRow;
         Insert: Partial<PlaceImageRow> & Pick<PlaceImageRow, 'place_id' | 'url'>;
         Update: Partial<PlaceImageRow>;
+        Relationships: [];
+      };
+      profiles: {
+        Row: ProfileRow;
+        Insert: Partial<ProfileRow> & Pick<ProfileRow, 'id'>;
+        Update: Partial<ProfileRow>;
+        Relationships: [];
       };
     };
-    Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Views: { [_ in never]: never };
+    Functions: { [_ in never]: never };
     Enums: {
       place_category: PlaceCategory;
       mood_tag: MoodTag;
       place_source: PlaceSource;
     };
+    CompositeTypes: { [_ in never]: never };
   };
 }

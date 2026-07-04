@@ -1,10 +1,10 @@
 import { FlatList, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { usePlaces } from '../lib/queries/usePlaces';
-import { PlaceCard } from '../components/discovery/PlaceCard';
-import { PlaceCardSkeleton } from '../components/ui/Skeleton';
-import { EmptyState } from '../components/ui/EmptyState';
-import { ErrorState } from '../components/ui/ErrorState';
+import { usePlaces } from '../../lib/queries/usePlaces';
+import { PlaceCard } from '../../components/discovery/PlaceCard';
+import { PlaceCardSkeleton } from '../../components/ui/Skeleton';
+import { EmptyState } from '../../components/ui/EmptyState';
+import { ErrorState } from '../../components/ui/ErrorState';
 
 export default function DiscoverScreen() {
   const insets = useSafeAreaInsets();
