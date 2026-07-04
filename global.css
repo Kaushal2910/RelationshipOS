@@ -1,0 +1,54 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Design tokens as CSS variables (RGB channels, space-separated so Tailwind's
+ * `<alpha-value>` opacity modifier works, e.g. bg-overlay/55).
+ * Source of truth: version1/DESIGN.md + UI_UX_Brief.md §2/§10.
+ * Semantic classes (bg-bg, text-text, bg-surface...) auto-switch with the OS
+ * color scheme via the prefers-color-scheme block below (darkMode: 'media').
+ * Mirror of theme/tokens.ts — keep the two in sync.
+ */
+:root {
+  /* brand + accents (stable across themes) */
+  --color-primary: 228 85 123;
+  --color-primary-pressed: 200 67 106;
+  --color-primary-soft: 251 227 234;
+  --color-secondary: 108 92 231;
+  --color-secondary-soft: 236 234 251;
+  --color-like: 47 191 113;
+  --color-pass: 240 97 109;
+  --color-warning: 224 163 46;
+  --color-info: 59 130 246;
+
+  /* light neutrals */
+  --color-bg: 253 248 246;
+  --color-surface: 255 255 255;
+  --color-surface-alt: 245 238 235;
+  --color-border: 236 226 222;
+  --color-text: 34 24 28;
+  --color-text-muted: 110 97 103;
+  --color-text-subtle: 154 142 147;
+  --color-overlay: 34 24 28; /* used with /55 alpha */
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* dark-adjusted brand tints */
+    --color-primary: 240 110 143;
+    --color-primary-pressed: 216 92 125;
+    --color-primary-soft: 64 34 44;
+    --color-secondary-soft: 42 37 64;
+
+    /* dark neutrals */
+    --color-bg: 22 17 20;
+    --color-surface: 33 26 30;
+    --color-surface-alt: 43 34 39;
+    --color-border: 58 47 53;
+    --color-text: 245 236 239;
+    --color-text-muted: 183 169 175;
+    --color-text-subtle: 138 125 131;
+    --color-overlay: 0 0 0; /* used with /60 alpha */
+  }
+}
