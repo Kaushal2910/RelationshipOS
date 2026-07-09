@@ -75,8 +75,31 @@ export interface ProfileRow {
   avatar_url: string | null;
   city: string | null;
   onboarded_at: string | null;
+  couple_id: string | null;
+  pairing_skipped_at: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export type CoupleStatus = 'pending' | 'active';
+
+export interface CoupleRow {
+  id: string;
+  user_a_id: string;
+  user_b_id: string | null;
+  status: CoupleStatus;
+  paired_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface InviteCodeRow {
+  code: string;
+  couple_id: string;
+  created_by: string;
+  expires_at: string;
+  used_at: string | null;
+  created_at: string;
 }
 
 export interface Database {
@@ -100,13 +123,31 @@ export interface Database {
         Update: Partial<ProfileRow>;
         Relationships: [];
       };
+      couples: {
+        Row: CoupleRow;
+        Insert: Partial<CoupleRow> & Pick<CoupleRow, 'user_a_id'>;
+        Update: Partial<CoupleRow>;
+        Relationships: [];
+      };
+      invite_codes: {
+        Row: InviteCodeRow;
+        Insert: Partial<InviteCodeRow> & Pick<InviteCodeRow, 'code' | 'couple_id' | 'created_by'>;
+        Update: Partial<InviteCodeRow>;
+        Relationships: [];
+      };
     };
     Views: { [_ in never]: never };
-    Functions: { [_ in never]: never };
+    Functions: {
+      redeem_invite_code: {
+        Args: { p_code: string };
+        Returns: string;
+      };
+    };
     Enums: {
       place_category: PlaceCategory;
       mood_tag: MoodTag;
       place_source: PlaceSource;
+      couple_status: CoupleStatus;
     };
     CompositeTypes: { [_ in never]: never };
   };

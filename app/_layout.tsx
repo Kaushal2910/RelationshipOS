@@ -50,9 +50,18 @@ function AuthGate({ children }: { children: ReactNode }) {
     const onboarded = !!profile?.onboarded_at;
     if (!onboarded) {
       if (group !== '(onboarding)') router.replace('/(onboarding)/profile');
-    } else if (group === '(auth)' || group === '(onboarding)') {
-      // '/' is the (tabs) index at runtime. The generated route types (.expo/types)
-      // are briefly stale after a route-tree change and regenerate on `expo start`.
+      return;
+    }
+
+    // Onboarded → main app. Pairing is opt-in from Profile (App_Flow §2: solo-first,
+    // "encouraged but skippable, pair later from Profile"), NOT a gate. Bounce out of
+    // (auth)/(onboarding) always, and out of (pairing) once actually paired (covers the
+    // live "partner joined" case while the inviter waits passively on the code screen).
+    // '/' is the (tabs) index at runtime; generated route types regenerate on `expo start`.
+    const paired = !!profile?.couple_id;
+    if (group === '(auth)' || group === '(onboarding)') {
+      router.replace('/' as unknown as Href);
+    } else if ((group as string) === '(pairing)' && paired) {
       router.replace('/' as unknown as Href);
     }
   }, [session, profile, profileLoading, segments, router]);

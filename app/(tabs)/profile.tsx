@@ -1,5 +1,6 @@
 import { Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useRouter, type Href } from 'expo-router';
 import { User } from 'lucide-react-native';
 import { Button } from '../../components/ui/Button';
 import { useTheme } from '../../theme/useTheme';
@@ -10,6 +11,7 @@ import { signOut } from '../../lib/auth';
 /** Profile tab — shows the signed-in user + sign out. Editing/avatar comes later. */
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const { tokens } = useTheme();
   const session = useSessionStore((s) => s.session);
   const { data: profile } = useProfile(session?.user.id);
@@ -35,6 +37,14 @@ export default function ProfileScreen() {
 
       <View className="flex-1" />
 
+      {!profile?.couple_id ? (
+        <View className="mb-md">
+          <Button
+            label="Pair with your partner"
+            onPress={() => router.push('/(pairing)/pairing' as unknown as Href)}
+          />
+        </View>
+      ) : null}
       <Button label="Sign out" variant="secondary" onPress={() => signOut()} />
     </View>
   );
