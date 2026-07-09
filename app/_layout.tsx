@@ -84,15 +84,31 @@ export default function RootLayout() {
   const isBootstrapping = useSessionStore((s) => s.isBootstrapping);
 
   // Load the persisted session on boot, then keep it in sync with auth changes.
+  // MUST complete (even on error) — otherwise the splash never hides and the app
+  // shows a blank white screen (return null branch below). A network-unreachable
+  // Supabase URL or corrupted AsyncStorage session can cause getSession() to reject.
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      setBootstrapping(false);
-    });
+    let cancelled = false;
+    supabase.auth
+      .getSession()
+      .then(({ data }) => {
+        if (cancelled) return;
+        setSession(data.session);
+        setBootstrapping(false);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        console.error('[bootstrap] getSession failed, continuing unauthenticated:', err);
+        setSession(null);
+        setBootstrapping(false);
+      });
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
     });
-    return () => sub.subscription.unsubscribe();
+    return () => {
+      cancelled = true;
+      sub.subscription.unsubscribe();
+    };
   }, [setSession, setBootstrapping]);
 
   const ready = (fontsLoaded || !!fontError) && !isBootstrapping;
