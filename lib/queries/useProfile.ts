@@ -30,6 +30,7 @@ export function useProfile(userId: string | undefined) {
 interface UpdateProfileInput {
   displayName: string;
   city: string;
+  avatarUrl?: string;
   /** When true, stamps onboarded_at=now (marks profile setup complete). */
   completeOnboarding?: boolean;
 }
@@ -38,10 +39,11 @@ interface UpdateProfileInput {
 export function useUpdateProfile(userId: string | undefined) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ displayName, city, completeOnboarding }: UpdateProfileInput) => {
+    mutationFn: async ({ displayName, city, avatarUrl, completeOnboarding }: UpdateProfileInput) => {
       const updates = {
         display_name: displayName,
         city,
+        ...(avatarUrl ? { avatar_url: avatarUrl } : {}),
         ...(completeOnboarding ? { onboarded_at: new Date().toISOString() } : {}),
       };
       const { error } = await supabase

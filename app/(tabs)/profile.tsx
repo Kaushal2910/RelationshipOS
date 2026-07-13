@@ -1,13 +1,10 @@
-import { useState, useMemo, useEffect } from 'react';
-import { Text, View, TextInput, ScrollView, ActivityIndicator, Alert, Pressable, Image } from 'react-native';
+import { useState, useMemo } from 'react';
+import { Text, View, ScrollView, ActivityIndicator, Alert, Pressable, Image } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useColorScheme } from 'nativewind';
 import {
   User,
-  Flame,
-  MapPin,
-  Mail,
   ChevronRight,
   Bell,
   Palette,
@@ -15,22 +12,20 @@ import {
   Trash2,
   Info,
   LogOut,
-  Check,
-  X,
-  ShieldAlert,
   Sliders,
-  Heart
+  Heart,
+  Check
 } from 'lucide-react-native';
 import { useTheme } from '../../theme/useTheme';
 import { useSessionStore } from '../../stores/session';
-import { useProfile, useCouple, usePartnerProfile, useUpdateProfile, useUnpair } from '../../lib/queries/useProfile';
+import { useProfile, useCouple, usePartnerProfile, useUnpair } from '../../lib/queries/useProfile';
 import { signOut } from '../../lib/auth';
 import { differenceInDays, parseISO } from 'date-fns';
 
 /**
  * Stitch-inspired Profile & Settings screen.
  * Implements high-fidelity iOS grouped lists, tactile scale feedback,
- * inline editing, and a premium appearance theme switcher.
+ * and a premium appearance theme switcher.
  */
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
@@ -49,23 +44,8 @@ export default function ProfileScreen() {
   const { data: partner, isLoading: isLoadingPartner } = usePartnerProfile(userId, coupleId ?? undefined);
 
   // Mutations
-  const updateProfile = useUpdateProfile(userId);
   const unpair = useUnpair(userId);
 
-  // Edit profile state
-  const [isEditing, setIsEditing] = useState(false);
-  const [editName, setEditName] = useState('');
-  const [editCity, setEditCity] = useState('');
-
-  // Sync edits
-  useEffect(() => {
-    if (profile) {
-      setEditName(profile.display_name ?? '');
-      setEditCity(profile.city ?? 'Pune');
-    }
-  }, [profile]);
-
-  // Streak Calculation
   const streak = useMemo(() => {
     if (!couple?.paired_at) return 0;
     try {
@@ -75,20 +55,6 @@ export default function ProfileScreen() {
       return 1;
     }
   }, [couple?.paired_at]);
-
-  const handleSave = () => {
-    if (!editName.trim()) {
-      Alert.alert('Validation Error', 'Display name cannot be empty.');
-      return;
-    }
-    updateProfile.mutate(
-      { displayName: editName.trim(), city: editCity.trim() },
-      {
-        onSuccess: () => setIsEditing(false),
-        onError: (err) => Alert.alert('Error', err instanceof Error ? err.message : 'Failed to update profile'),
-      }
-    );
-  };
 
   const handleUnpair = () => {
     Alert.alert(
@@ -109,7 +75,11 @@ export default function ProfileScreen() {
     );
   };
 
-  const isLoading = isLoadingProfile || isLoadingCouple || isLoadingPartner || updateProfile.isPending || unpair.isPending;
+  const handleComingSoon = (feature: string) => {
+    Alert.alert('Coming Soon', `${feature} will be available in the next release! 🚀`);
+  };
+
+  const isLoading = isLoadingProfile || isLoadingCouple || isLoadingPartner || unpair.isPending;
 
   return (
     <View className="flex-1 bg-bg" style={{ paddingTop: insets.top }}>
@@ -121,7 +91,7 @@ export default function ProfileScreen() {
         </View>
         <Pressable
           className="p-sm active:opacity-75 transition-opacity"
-          onPress={() => router.push('/(tabs)/discover' as any)}
+          onPress={() => handleComingSoon('Notifications')}
         >
           <Bell size={20} className="text-text-muted" />
         </Pressable>
@@ -152,61 +122,16 @@ export default function ProfileScreen() {
               </View>
             </View>
 
-            {isEditing ? (
-              <View className="w-full bg-surface border border-border p-base rounded-2xl shadow-e1">
-                <Text className="font-inter-semibold text-caption text-text-muted mb-xxs">Display Name</Text>
-                <TextInput
-                  value={editName}
-                  onChangeText={setEditName}
-                  placeholder="Elena Rodriguez"
-                  placeholderTextColor={tokens.textSubtle}
-                  className="w-full h-11 px-base rounded-xl border border-border bg-bg text-text font-inter text-body mb-sm"
-                  maxLength={50}
-                />
-
-                <Text className="font-inter-semibold text-caption text-text-muted mb-xxs">Current City</Text>
-                <TextInput
-                  value={editCity}
-                  onChangeText={setEditCity}
-                  placeholder="Pune"
-                  placeholderTextColor={tokens.textSubtle}
-                  className="w-full h-11 px-base rounded-xl border border-border bg-bg text-text font-inter text-body mb-base"
-                  maxLength={50}
-                />
-
-                <View className="flex-row gap-base">
-                  <Pressable
-                    onPress={() => {
-                      setIsEditing(false);
-                      setEditName(profile?.display_name ?? '');
-                      setEditCity(profile?.city ?? 'Pune');
-                    }}
-                    className="flex-1 h-11 items-center justify-center rounded-xl bg-surface-alt border border-border flex-row active:scale-[0.98] transition-transform duration-100"
-                  >
-                    <X size={16} color={tokens.text} />
-                    <Text className="ml-xs font-inter-semibold text-button text-text">Cancel</Text>
-                  </Pressable>
-                  <Pressable
-                    onPress={handleSave}
-                    className="flex-1 h-11 items-center justify-center rounded-xl bg-primary flex-row active:scale-[0.98] transition-transform duration-100"
-                  >
-                    <Check size={16} color="#fff" />
-                    <Text className="ml-xs font-inter-semibold text-button text-white">Save</Text>
-                  </Pressable>
-                </View>
-              </View>
-            ) : (
-              <View className="items-center">
-                <Text className="font-inter-bold text-h1 text-text">{profile?.display_name ?? 'Your Name'}</Text>
-                <Text className="font-sans text-body text-text-muted mt-xxs">{profile?.city ?? 'Pune'}</Text>
-                <Pressable
-                  onPress={() => setIsEditing(true)}
-                  className="mt-base px-6 py-2 rounded-full border border-primary active:bg-primary-soft active:scale-95 transition-transform duration-150"
-                >
-                  <Text className="font-inter-semibold text-caption text-primary">Edit Profile</Text>
-                </Pressable>
-              </View>
-            )}
+            <View className="items-center">
+              <Text className="font-inter-bold text-h1 text-text">{profile?.display_name ?? 'Your Name'}</Text>
+              <Text className="font-sans text-body text-text-muted mt-xxs">{profile?.city ?? 'Pune'}</Text>
+              <Pressable
+                onPress={() => router.push('/profile/edit' as any)}
+                className="mt-base px-6 py-2 rounded-full border border-primary active:bg-primary-soft active:scale-95 transition-transform duration-150"
+              >
+                <Text className="font-inter-semibold text-caption text-primary">Edit Profile</Text>
+              </Pressable>
+            </View>
           </View>
 
           {/* Group 1: Connection & Partner */}
@@ -215,7 +140,7 @@ export default function ProfileScreen() {
             <View className="rounded-2xl border border-border bg-surface overflow-hidden shadow-sm">
               {coupleId ? (
                 <Pressable
-                  onPress={() => {}}
+                  onPress={() => Alert.alert('Connected Status', `You are paired with ${partner?.display_name || 'your partner'}. Share memories and swipe date spots together!`)}
                   className="flex-row items-center justify-between p-base active:bg-surface-alt transition-colors duration-150 flex-1"
                 >
                   <View className="flex-row items-center gap-md">
@@ -258,14 +183,20 @@ export default function ProfileScreen() {
           <View className="mb-base">
             <Text className="font-inter-bold text-overline text-text-subtle uppercase px-md mb-xs">Preferences</Text>
             <View className="rounded-2xl border border-border bg-surface overflow-hidden shadow-sm">
-              <Pressable className="flex-row items-center justify-between p-base border-b border-border/50 active:bg-surface-alt transition-colors">
+              <Pressable
+                onPress={() => handleComingSoon('Preferences')}
+                className="flex-row items-center justify-between p-base border-b border-border/50 active:bg-surface-alt transition-colors"
+              >
                 <View className="flex-row items-center gap-md">
                   <Sliders size={20} color={tokens.primary} />
                   <Text className="font-inter text-body text-text">Preferences & Sharing</Text>
                 </View>
                 <ChevronRight size={18} color={tokens.textSubtle} />
               </Pressable>
-              <Pressable className="flex-row items-center justify-between p-base active:bg-surface-alt transition-colors">
+              <Pressable
+                onPress={() => handleComingSoon('Notifications')}
+                className="flex-row items-center justify-between p-base active:bg-surface-alt transition-colors"
+              >
                 <View className="flex-row items-center gap-md">
                   <Bell size={20} color={tokens.primary} />
                   <Text className="font-inter text-body text-text">Notifications</Text>
@@ -316,7 +247,10 @@ export default function ProfileScreen() {
                 </View>
               </View>
 
-              <Pressable className="flex-row items-center justify-between p-base border-b border-border/50 active:bg-surface-alt transition-colors">
+              <Pressable
+                onPress={() => handleComingSoon('Export Data')}
+                className="flex-row items-center justify-between p-base border-b border-border/50 active:bg-surface-alt transition-colors"
+              >
                 <View className="flex-row items-center gap-md">
                   <Download size={20} color={tokens.primary} />
                   <Text className="font-inter text-body text-text">Export My Data</Text>
@@ -335,7 +269,10 @@ export default function ProfileScreen() {
                   </View>
                 </Pressable>
               ) : (
-                <Pressable className="flex-row items-center p-base active:bg-surface-alt transition-colors">
+                <Pressable
+                  onPress={() => handleComingSoon('Delete Account')}
+                  className="flex-row items-center p-base active:bg-surface-alt transition-colors"
+                >
                   <View className="flex-row items-center gap-md">
                     <Trash2 size={20} color={tokens.pass} />
                     <Text className="font-inter-semibold text-body text-pass">Delete Account</Text>
@@ -349,10 +286,13 @@ export default function ProfileScreen() {
           <View className="mb-base">
             <Text className="font-inter-bold text-overline text-text-subtle uppercase px-md mb-xs">Legal</Text>
             <View className="rounded-2xl border border-border bg-surface overflow-hidden shadow-sm">
-              <Pressable className="flex-row items-center justify-between p-base active:bg-surface-alt transition-colors">
+              <Pressable
+                onPress={() => Alert.alert('About RelationshipOS', 'v1.0.0\n\nBuilt with ❤️ for couples to explore, share, and cherish moments together.')}
+                className="flex-row items-center justify-between p-base active:bg-surface-alt transition-colors"
+              >
                 <View className="flex-row items-center gap-md">
                   <Info size={20} color={tokens.primary} />
-                  <Text className="font-inter text-body text-text">About RelationshipOS</Text>
+                  <Text className="font-inter text-body text-text">About About RelationshipOS</Text>
                 </View>
                 <View className="flex-row items-center gap-xxs">
                   <Text className="font-inter text-caption text-text-subtle">v1.0.0</Text>

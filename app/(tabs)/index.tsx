@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { View, Text, Pressable, ScrollView, ActivityIndicator, Image } from 'react-native';
+import { View, Text, Pressable, ScrollView, ActivityIndicator, Image, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Heart, Calendar, Camera, User, Flame, Compass, ArrowRight, Star, Coffee, Sparkles } from 'lucide-react-native';
@@ -40,6 +40,18 @@ export default function DashboardScreen() {
       return 1;
     }
   }, [couple?.paired_at]);
+
+  const handleStreakPress = () => {
+    if (!coupleId) {
+      Alert.alert('Solo Mode', 'Pair with a partner to start tracking your relationship streak!');
+    } else {
+      Alert.alert('Flame Streak 🔥', `You and your partner have been paired for ${streak} consecutive ${streak === 1 ? 'day' : 'days'}. Keep sharing date spots together!`);
+    }
+  };
+
+  const handleCheckinPress = () => {
+    Alert.alert('Daily Check-in ✨', "How is the spark today? Shared daily check-ins will be configurable in V2!");
+  };
 
   const isLoading = isLoadingProfile || isLoadingCouple || isLoadingPartner || isLoadingNextDate || isLoadingLatestMemory;
 
@@ -124,8 +136,21 @@ export default function DashboardScreen() {
                   {nextDate.place?.cover_url ? (
                     <Image source={{ uri: nextDate.place.cover_url }} className="w-full h-full object-cover" />
                   ) : (
-                    <View className="w-full h-full items-center justify-center">
-                      <Text className="text-4xl">📍</Text>
+                    <View className="w-full h-full bg-surface-alt justify-center items-center relative overflow-hidden">
+                      {/* Stylized vector map background lines */}
+                      <View className="absolute h-0.5 w-[200%] bg-border/40 rotate-[15deg] top-1/4 left-0" />
+                      <View className="absolute h-0.5 w-[200%] bg-border/40 -rotate-[30deg] top-1/2 left-0" />
+                      <View className="absolute h-[200%] w-0.5 bg-border/40 top-0 left-1/4" />
+                      <View className="absolute h-[200%] w-0.5 bg-border/40 top-0 left-3/4" />
+                      {/* Red circle pulsed map pin */}
+                      <View className="h-10 w-10 bg-primary/20 rounded-full justify-center items-center">
+                        <View className="h-6 w-6 bg-primary/40 rounded-full justify-center items-center">
+                          <View className="h-3 w-3 bg-primary rounded-full" />
+                        </View>
+                      </View>
+                      <Text className="absolute bottom-2 right-2 font-inter text-[10px] text-text-subtle bg-surface/90 px-xs py-xxs rounded border border-border">
+                        Map Preview
+                      </Text>
                     </View>
                   )}
                   {nextDate.place?.rating ? (
@@ -217,7 +242,10 @@ export default function DashboardScreen() {
           {/* Stats & CTA Bento Section */}
           <View className="flex-row gap-base mb-lg">
             {/* Streak Card */}
-            <View className="flex-1 bg-surface-alt border border-border rounded-2xl p-base aspect-square justify-between shadow-sm">
+            <Pressable
+              onPress={handleStreakPress}
+              className="flex-1 bg-surface-alt border border-border rounded-2xl p-base aspect-square justify-between shadow-sm active:scale-[0.98] transition-transform duration-200"
+            >
               <View className="h-10 w-10 rounded-full bg-white items-center justify-center shadow-sm">
                 <Flame size={20} color="#f97316" fill="#f97316" />
               </View>
@@ -227,11 +255,11 @@ export default function DashboardScreen() {
                 </Text>
                 <Text className="font-inter-semibold text-caption text-text-muted">Day Streak</Text>
               </View>
-            </View>
+            </Pressable>
 
             {/* Quick Action Card */}
             <Pressable
-              onPress={() => router.push('/(tabs)/discover' as any)}
+              onPress={handleCheckinPress}
               className="flex-1 bg-surface border border-border rounded-2xl p-base aspect-square justify-between shadow-sm active:scale-[0.98] transition-transform duration-200"
             >
               <View className="h-10 w-10 rounded-full bg-secondary-soft items-center justify-center shadow-sm">

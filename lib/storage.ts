@@ -39,6 +39,47 @@ export async function uploadMemoryPhoto(
 }
 
 /**
+ * Upload an avatar to the public 'avatars' bucket.
+ * Returns the public URL of the uploaded avatar.
+ */
+export async function uploadAvatar(
+  userId: string,
+  file: { uri: string; name: string; type: string }
+): Promise<string> {
+  const fileName = `${userId}/${Date.now()}_${file.name}`;
+
+  // Convert React Native file URI to blob using XMLHttpRequest
+  const blob = await new Promise<Blob>((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.onload = function () {
+      resolve(xhr.response);
+    };
+    xhr.onerror = function (e) {
+      console.error('[storage] Blob conversion failed:', e);
+      reject(new TypeError('Network request failed'));
+    };
+    xhr.responseType = 'blob';
+    xhr.open('GET', file.uri, true);
+    xhr.send(null);
+  });
+
+  const { data, error } = await supabase.storage
+    .from('avatars')
+    .upload(fileName, blob, {
+      contentType: file.type || 'image/jpeg',
+      upsert: true,
+    });
+
+  if (error) throw error;
+
+  const { data: { publicUrl } } = supabase.storage
+    .from('avatars')
+    .getPublicUrl(data.path);
+
+  return publicUrl;
+}
+
+/**
  * Get a signed URL for a memory media file.
  * This is required because the memory-media bucket is private.
  */
