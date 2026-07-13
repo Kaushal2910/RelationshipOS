@@ -5,10 +5,12 @@ import { useRouter } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { Search } from 'lucide-react-native';
 import { TextField } from '../../../components/ui/TextField';
 import { Button } from '../../../components/ui/Button';
 import { useCreateCalendarItem } from '../../../lib/queries/useCalendar';
 import { useWishlist } from '../../../lib/queries/useWishlist';
+import { usePlaces } from '../../../lib/queries/usePlaces';
 import { useSessionStore } from '../../../stores/session';
 import { useProfile } from '../../../lib/queries/useProfile';
 import { useTheme } from '../../../theme/useTheme';
@@ -194,49 +196,69 @@ export default function CreateCalendarItemScreen() {
           </View>
         </View>
 
-        {/* Wishlist place select */}
-        {wishlist && wishlist.length > 0 && (
-          <View className="mb-base">
-            <Text className="mb-xs font-inter-medium text-label text-text-muted">Link a Saved Spot</Text>
-            <Controller
-              control={control}
-              name="place_id"
-              render={({ field: { onChange, value } }) => (
-                <View className="flex-row flex-wrap gap-xs">
-                  <Pressable
-                    onPress={() => onChange(null)}
-                    className={[
-                      'px-sm py-xs rounded border',
-                      value === null ? 'border-primary bg-primary-soft' : 'border-border bg-surface',
-                    ].join(' ')}
-                  >
-                    <Text className={value === null ? 'text-primary font-inter-semibold text-caption' : 'text-text-muted font-inter text-caption'}>
-                      None
-                    </Text>
-                  </Pressable>
-                  {wishlist.map((item) => {
-                    if (!item.place) return null;
-                    const active = value === item.place.id;
-                    return (
-                      <Pressable
-                        key={item.place.id}
-                        onPress={() => onChange(item.place!.id)}
-                        className={[
-                          'px-sm py-xs rounded border',
-                          active ? 'border-primary bg-primary-soft' : 'border-border bg-surface',
-                        ].join(' ')}
-                      >
-                        <Text className={active ? 'text-primary font-inter-semibold text-caption' : 'text-text-muted font-inter text-caption'}>
-                          {item.place.name}
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
+        {/* Wishlist place select with Search */}
+        <View className="mb-base">
+          <Text className="mb-xs font-inter-medium text-label text-text-muted">Link a Saved Spot</Text>
+
+          <Controller
+            control={control}
+            name="place_id"
+            render={({ field: { onChange, value } }) => {
+              const [searchQuery, setSearchQuery] = useState('');
+
+              // Filter wishlist spots & all active places
+              const filteredWishlist = (wishlist || []).filter(item =>
+                item.place?.name.toLowerCase().includes(searchQuery.toLowerCase())
+              );
+
+              return (
+                <View className="space-y-sm">
+                  {/* Search Box */}
+                  <View className="mb-sm">
+                    <TextField
+                      label="Search Spots"
+                      placeholder="Search spot name..."
+                      value={searchQuery}
+                      onChangeText={setSearchQuery}
+                    />
+                  </View>
+
+                  <View className="flex-row flex-wrap gap-xs">
+                    <Pressable
+                      onPress={() => onChange(null)}
+                      className={[
+                        'px-sm py-xs rounded border',
+                        value === null ? 'border-primary bg-primary-soft' : 'border-border bg-surface',
+                      ].join(' ')}
+                    >
+                      <Text className={value === null ? 'text-primary font-inter-semibold text-caption' : 'text-text-muted font-inter text-caption'}>
+                        None
+                      </Text>
+                    </Pressable>
+                    {filteredWishlist.map((item) => {
+                      if (!item.place) return null;
+                      const active = value === item.place.id;
+                      return (
+                        <Pressable
+                          key={item.place.id}
+                          onPress={() => onChange(item.place!.id)}
+                          className={[
+                            'px-sm py-xs rounded border',
+                            active ? 'border-primary bg-primary-soft' : 'border-border bg-surface',
+                          ].join(' ')}
+                        >
+                          <Text className={active ? 'text-primary font-inter-semibold text-caption' : 'text-text-muted font-inter text-caption'}>
+                            {item.place.name}
+                          </Text>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
                 </View>
-              )}
-            />
-          </View>
-        )}
+              );
+            }}
+          />
+        </View>
 
         <Controller
           control={control}
