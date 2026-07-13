@@ -34,6 +34,22 @@ export default function TabsLayout() {
         name="profile"
         options={{ title: 'Profile', tabBarIcon: ({ color, size }) => <User color={color} size={size} /> }}
       />
+      <Tabs.Screen
+        name="place-detail/[id]"
+        options={{ href: null, title: 'Place Detail' }}
+      />
+      <Tabs.Screen
+        name="calendar/create-item"
+        options={{ href: null, title: 'Schedule Date' }}
+      />
+      <Tabs.Screen
+        name="memory/log"
+        options={{ href: null, title: 'Log Memory' }}
+      />
+      <Tabs.Screen
+        name="memory/[id]"
+        options={{ href: null, title: 'Memory Detail' }}
+      />
     </Tabs>
   );
 }

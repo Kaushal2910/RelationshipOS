@@ -1,15 +1,18 @@
-import { Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { Image } from 'expo-image';
-import { Star } from 'lucide-react-native';
+import { Star, Info } from 'lucide-react-native';
 import type { Place } from '../../types/place';
 import { priceLevelToRupees } from '../../types/place';
 import { useTheme } from '../../theme/useTheme';
 
 /**
- * Static Discover place card (P0). Visual per version1 Stitch
- * `discover_swipe_date_spots_1`. Swipe gestures come in P3.
+ * Visual card body (image + scrim + metadata text). Stateless — no gestures.
+ * Used by both SwipeableCard (draggable top card) and DeckStack (static behind
+ * cards). Mirrors the Stitch `discover_swipe_date_spots_1` card layout exactly.
+ * When `onInfoPress` is provided, an (i) button overlays the top-right so the
+ * user can open detail without triggering a swipe.
  */
-export function PlaceCard({ place }: { place: Place }) {
+export function PlaceCardBody({ place, onInfoPress }: { place: Place; onInfoPress?: () => void }) {
   const { tokens } = useTheme();
   const price = priceLevelToRupees(place.price_level);
   const mood = place.moods?.[0];
@@ -18,9 +21,9 @@ export function PlaceCard({ place }: { place: Place }) {
     <View
       accessibilityRole="button"
       accessibilityLabel={`${place.name}, ${place.category} in ${place.city}`}
-      className="mb-lg overflow-hidden rounded-card bg-surface shadow-e2"
+      className="h-full w-full overflow-hidden rounded-card bg-surface shadow-e2"
     >
-      <View className="aspect-[3/4] w-full">
+      <View className="h-full w-full">
         {place.cover_url ? (
           <Image
             source={{ uri: place.cover_url }}
@@ -65,6 +68,30 @@ export function PlaceCard({ place }: { place: Place }) {
           ) : null}
         </View>
       </View>
+
+      {onInfoPress && (
+        <Pressable
+          onPress={onInfoPress}
+          className="absolute right-lg top-lg h-10 w-10 items-center justify-center rounded-full bg-white/20"
+          accessibilityRole="button"
+          accessibilityLabel="More info"
+        >
+          <Info size={24} color="#ffffff" />
+        </Pressable>
+      )}
+    </View>
+  );
+}
+
+/**
+ * Legacy wrapper for standalone card use (P0 compatibility).
+ * In P3+, prefer PlaceCardBody directly — SwipeableCard wraps it for the
+ * gesture deck; DeckStack uses it for the static behind-cards.
+ */
+export function PlaceCard({ place, onInfoPress }: { place: Place; onInfoPress?: () => void }) {
+  return (
+    <View className="mb-lg">
+      <PlaceCardBody place={place} onInfoPress={onInfoPress} />
     </View>
   );
 }

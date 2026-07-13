@@ -102,6 +102,77 @@ export interface InviteCodeRow {
   created_at: string;
 }
 
+export type SwipeDecision = 'like' | 'pass' | 'superlike';
+
+export interface SwipeRow {
+  id: string;
+  user_id: string;
+  place_id: string;
+  decision: SwipeDecision;
+  created_at: string;
+}
+
+export type ItemStatus = 'planned' | 'done' | 'cancelled';
+
+export type CalendarType =
+  | 'date'
+  | 'anniversary'
+  | 'birthday'
+  | 'trip'
+  | 'movie_night'
+  | 'reservation'
+  | 'event'
+  | 'other';
+
+export interface WishlistRow {
+  id: string;
+  couple_id: string;
+  place_id: string;
+  status: ItemStatus;
+  both_liked_at: string;
+  created_at: string;
+}
+
+export interface CalendarItemRow {
+  id: string;
+  couple_id: string;
+  place_id: string | null;
+  created_by: string;
+  title: string;
+  type: CalendarType;
+  starts_at: string;
+  ends_at: string | null;
+  status: ItemStatus;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+}
+
+export interface MemoryRow {
+  id: string;
+  couple_id: string;
+  calendar_item_id: string | null;
+  place_id: string | null;
+  created_by: string;
+  title: string | null;
+  note: string | null;
+  memory_date: string;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+}
+
+export interface MemoryMediaRow {
+  id: string;
+  memory_id: string;
+  url: string;
+  type: string;
+  blurhash: string | null;
+  position: number;
+  created_at: string;
+}
+
 export interface Database {
   public: {
     Tables: {
@@ -135,6 +206,36 @@ export interface Database {
         Update: Partial<InviteCodeRow>;
         Relationships: [];
       };
+      swipes: {
+        Row: SwipeRow;
+        Insert: Partial<SwipeRow> & Pick<SwipeRow, 'user_id' | 'place_id' | 'decision'>;
+        Update: Partial<SwipeRow>;
+        Relationships: [];
+      };
+      wishlist: {
+        Row: WishlistRow;
+        Insert: Partial<WishlistRow> & Pick<WishlistRow, 'couple_id' | 'place_id'>;
+        Update: Partial<WishlistRow>;
+        Relationships: [];
+      };
+      calendar_items: {
+        Row: CalendarItemRow;
+        Insert: Partial<CalendarItemRow> & Pick<CalendarItemRow, 'couple_id' | 'created_by' | 'title' | 'starts_at'>;
+        Update: Partial<CalendarItemRow>;
+        Relationships: [];
+      };
+      memories: {
+        Row: MemoryRow;
+        Insert: Partial<MemoryRow> & Pick<MemoryRow, 'couple_id' | 'created_by' | 'memory_date'>;
+        Update: Partial<MemoryRow>;
+        Relationships: [];
+      };
+      memory_media: {
+        Row: MemoryMediaRow;
+        Insert: Partial<MemoryMediaRow> & Pick<MemoryMediaRow, 'memory_id' | 'url'>;
+        Update: Partial<MemoryMediaRow>;
+        Relationships: [];
+      };
     };
     Views: { [_ in never]: never };
     Functions: {
@@ -142,12 +243,27 @@ export interface Database {
         Args: { p_code: string };
         Returns: string;
       };
+      handle_swipe_match: {
+        Args: Record<string, never>;
+        Returns: unknown;
+      };
+      get_deck_for_user: {
+        Args: {
+          p_user_id: string;
+          p_city?: string;
+          p_moods?: string[];
+          p_price_level?: number;
+        };
+        Returns: PlaceRow[];
+      };
     };
     Enums: {
       place_category: PlaceCategory;
       mood_tag: MoodTag;
       place_source: PlaceSource;
       couple_status: CoupleStatus;
+      swipe_decision: SwipeDecision;
+      item_status: ItemStatus;
     };
     CompositeTypes: { [_ in never]: never };
   };
