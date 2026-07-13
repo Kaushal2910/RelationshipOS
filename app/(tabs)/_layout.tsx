@@ -1,8 +1,8 @@
 import { Tabs } from 'expo-router';
-import { Compass, Heart, CalendarDays, User } from 'lucide-react-native';
+import { Home, Compass, Heart, CalendarDays, User } from 'lucide-react-native';
 import { useTheme } from '../../theme/useTheme';
 
-/** Authenticated tab shell. Discover is the spine (P3); the others are stubs for now. */
+/** Authenticated tab shell. Dashboard is index, Discover is discover. */
 export default function TabsLayout() {
   const { tokens } = useTheme();
   return (
@@ -20,6 +20,10 @@ export default function TabsLayout() {
     >
       <Tabs.Screen
         name="index"
+        options={{ title: 'Home', tabBarIcon: ({ color, size }) => <Home color={color} size={size} /> }}
+      />
+      <Tabs.Screen
+        name="discover"
         options={{ title: 'Discover', tabBarIcon: ({ color, size }) => <Compass color={color} size={size} /> }}
       />
       <Tabs.Screen

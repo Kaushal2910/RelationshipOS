@@ -128,3 +128,31 @@ export function useDeleteCalendarItem(coupleId: string | undefined) {
     },
   });
 }
+
+async function fetchNextCalendarItem(coupleId: string): Promise<CalendarItem | null> {
+  const { data, error } = await (supabase as any)
+    .from('calendar_items')
+    .select('*, place:places(*)')
+    .eq('couple_id', coupleId)
+    .gte('starts_at', new Date().toISOString())
+    .is('deleted_at', null)
+    .eq('status', 'planned')
+    .order('starts_at', { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) throw error;
+  return data as CalendarItem | null;
+}
+
+/**
+ * Fetch the single next upcoming planned calendar item.
+ */
+export function useNextCalendarItem(coupleId: string | undefined) {
+  return useQuery({
+    queryKey: ['calendar', coupleId, 'next'],
+    queryFn: () => fetchNextCalendarItem(coupleId as string),
+    enabled: !!coupleId,
+    staleTime: 30_000,
+  });
+}

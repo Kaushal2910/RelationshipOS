@@ -171,3 +171,30 @@ export function useDeleteMemory(coupleId: string | undefined) {
     },
   });
 }
+
+async function fetchLatestMemory(coupleId: string): Promise<Memory | null> {
+  const { data, error } = await (supabase as any)
+    .from('memories')
+    .select('*, place:places(*), media:memory_media(*)')
+    .eq('couple_id', coupleId)
+    .is('deleted_at', null)
+    .order('memory_date', { ascending: false })
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) throw error;
+  return data as Memory | null;
+}
+
+/**
+ * Fetch the single latest logged memory for a couple.
+ */
+export function useLatestMemory(coupleId: string | undefined) {
+  return useQuery({
+    queryKey: ['memories', coupleId, 'latest'],
+    queryFn: () => fetchLatestMemory(coupleId as string),
+    enabled: !!coupleId,
+    staleTime: 30_000,
+  });
+}

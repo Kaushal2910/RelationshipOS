@@ -88,6 +88,10 @@ export default function LogMemoryScreen() {
 
   const onSubmit = async (values: FormValues) => {
     if (!userId || !coupleId) return;
+    if (images.length === 0) {
+      setError('At least one photo is required to save a memory.');
+      return;
+    }
     setUploading(true);
     setError(null);
 
@@ -249,7 +253,9 @@ export default function LogMemoryScreen() {
 
         {/* Photo Grid */}
         <View className="mb-lg">
-          <Text className="mb-xs font-inter-medium text-label text-text-muted">Photos (Max 9)</Text>
+          <Text className="mb-xs font-inter-medium text-label text-text-muted">
+            Photos (Required, Max 9) <Text className="text-pass">*</Text>
+          </Text>
           <View className="flex-row flex-wrap gap-sm">
             {images.map((uri, idx) => (
               <View key={uri} className="relative w-24 h-24 bg-surface-alt rounded-lg overflow-hidden">
