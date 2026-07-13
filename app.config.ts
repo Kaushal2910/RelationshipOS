@@ -4,7 +4,7 @@ import type { ExpoConfig, ConfigContext } from 'expo/config';
 // in the client bundle (RLS is the security boundary). Server secrets never live here.
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
-  name: 'RelationshipOS',
+  name: 'RelationOS',
   slug: 'app-relationos',
   version: '1.0.0',
   orientation: 'portrait',
@@ -16,6 +16,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ios: {
     supportsTablet: true,
     bundleIdentifier: 'com.relationos.app',
+    infoPlist: {
+      ITSAppUsesNonExemptEncryption: false,
+    },
   },
   android: {
     package: 'com.relationos.app',

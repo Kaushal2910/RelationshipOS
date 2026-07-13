@@ -1,5 +1,5 @@
 import '../global.css';
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -113,11 +113,25 @@ export default function RootLayout() {
 
   const ready = (fontsLoaded || !!fontError) && !isBootstrapping;
 
+  // Fallback safety timeout: Force the app to mount and hide splash screen if loading hangs (e.g. fonts/network)
+  const [timedOut, setTimedOut] = useState(false);
   useEffect(() => {
-    if (ready) SplashScreen.hideAsync();
-  }, [ready]);
+    const timer = setTimeout(() => {
+      console.warn('[bootstrap] Ready timeout triggered, forcing app launch');
+      setTimedOut(true);
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, []);
 
-  if (!ready) return null;
+  useEffect(() => {
+    if (ready || timedOut) {
+      SplashScreen.hideAsync().catch((err) => {
+        console.error('[bootstrap] Failed to hide splash screen:', err);
+      });
+    }
+  }, [ready, timedOut]);
+
+  if (!ready && !timedOut) return null;
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
